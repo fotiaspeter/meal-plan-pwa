@@ -1,4 +1,90 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
-  <rect width="512" height="512" rx="102" fill="#c4421a"/>
-  <text x="256" y="295" font-family="system-ui, sans-serif" font-size="234" font-weight="800" fill="white" text-anchor="middle" dominant-baseline="middle">MP</text>
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#1a0a0a"/>
+      <stop offset="100%" stop-color="#0d0505"/>
+    </linearGradient>
+    <linearGradient id="red" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#c4421a"/>
+      <stop offset="100%" stop-color="#8b2010"/>
+    </linearGradient>
+    <linearGradient id="plate" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#e8e8e8"/>
+      <stop offset="40%" stop-color="#b0b0b0"/>
+      <stop offset="100%" stop-color="#888"/>
+    </linearGradient>
+    <linearGradient id="bar" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#d0d0d0"/>
+      <stop offset="50%" stop-color="#999"/>
+      <stop offset="100%" stop-color="#777"/>
+    </linearGradient>
+    <filter id="shadow">
+      <feDropShadow dx="0" dy="4" stdDeviation="8" flood-color="#000" flood-opacity="0.5"/>
+    </filter>
+    <filter id="glow">
+      <feGaussianBlur stdDeviation="6" result="blur"/>
+      <feFlood flood-color="#c4421a" flood-opacity="0.3"/>
+      <feComposite in2="blur" operator="in"/>
+      <feMerge>
+        <feMergeNode/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+  </defs>
+
+  <!-- Background -->
+  <rect width="512" height="512" rx="108" fill="url(#bg)"/>
+
+  <!-- Subtle grid texture -->
+  <pattern id="grid" width="24" height="24" patternUnits="userSpaceOnUse">
+    <path d="M 24 0 L 0 0 0 24" fill="none" stroke="#ffffff" stroke-width="0.3" opacity="0.04"/>
+  </pattern>
+  <rect width="512" height="512" rx="108" fill="url(#grid)"/>
+
+  <!-- Corner accent arcs -->
+  <path d="M 0 140 Q 0 0 140 0" fill="none" stroke="#c4421a" stroke-width="1.5" opacity="0.15"/>
+  <path d="M 512 372 Q 512 512 372 512" fill="none" stroke="#c4421a" stroke-width="1.5" opacity="0.15"/>
+
+  <!-- Dumbbell — rotated 45 degrees for dynamic look -->
+  <g transform="translate(256, 240) rotate(-35)" filter="url(#shadow)">
+    <!-- Bar -->
+    <rect x="-120" y="-8" width="240" height="16" rx="8" fill="url(#bar)"/>
+    <!-- Bar knurling texture -->
+    <rect x="-40" y="-8" width="80" height="16" rx="2" fill="url(#bar)" opacity="0.7"/>
+    <line x1="-35" y1="-7" x2="-35" y2="7" stroke="#666" stroke-width="1" opacity="0.5"/>
+    <line x1="-28" y1="-7" x2="-28" y2="7" stroke="#666" stroke-width="1" opacity="0.5"/>
+    <line x1="-21" y1="-7" x2="-21" y2="7" stroke="#666" stroke-width="1" opacity="0.5"/>
+    <line x1="-14" y1="-7" x2="-14" y2="7" stroke="#666" stroke-width="1" opacity="0.5"/>
+    <line x1="-7" y1="-7" x2="-7" y2="7" stroke="#666" stroke-width="1" opacity="0.5"/>
+    <line x1="0" y1="-7" x2="0" y2="7" stroke="#666" stroke-width="1" opacity="0.5"/>
+    <line x1="7" y1="-7" x2="7" y2="7" stroke="#666" stroke-width="1" opacity="0.5"/>
+    <line x1="14" y1="-7" x2="14" y2="7" stroke="#666" stroke-width="1" opacity="0.5"/>
+    <line x1="21" y1="-7" x2="21" y2="7" stroke="#666" stroke-width="1" opacity="0.5"/>
+    <line x1="28" y1="-7" x2="28" y2="7" stroke="#666" stroke-width="1" opacity="0.5"/>
+    <line x1="35" y1="-7" x2="35" y2="7" stroke="#666" stroke-width="1" opacity="0.5"/>
+
+    <!-- Left outer plate -->
+    <rect x="-145" y="-48" width="30" height="96" rx="6" fill="url(#red)"/>
+    <rect x="-143" y="-44" width="2" height="88" rx="1" fill="#e05530" opacity="0.3"/>
+    <!-- Left inner plate -->
+    <rect x="-118" y="-38" width="24" height="76" rx="5" fill="url(#red)" opacity="0.85"/>
+    <rect x="-116" y="-34" width="2" height="68" rx="1" fill="#e05530" opacity="0.25"/>
+
+    <!-- Right outer plate -->
+    <rect x="115" y="-48" width="30" height="96" rx="6" fill="url(#red)"/>
+    <rect x="141" y="-44" width="2" height="88" rx="1" fill="#e05530" opacity="0.3"/>
+    <!-- Right inner plate -->
+    <rect x="94" y="-38" width="24" height="76" rx="5" fill="url(#red)" opacity="0.85"/>
+    <rect x="114" y="-34" width="2" height="68" rx="1" fill="#e05530" opacity="0.25"/>
+
+    <!-- Collars -->
+    <rect x="-92" y="-14" width="12" height="28" rx="3" fill="#aaa"/>
+    <rect x="80" y="-14" width="12" height="28" rx="3" fill="#aaa"/>
+  </g>
+
+  <!-- App name text -->
+  <text x="256" y="400" font-family="system-ui, -apple-system, 'Segoe UI', sans-serif" font-size="42" font-weight="800" fill="#ffffff" text-anchor="middle" dominant-baseline="middle" letter-spacing="-1" filter="url(#glow)">MEAL PLAN</text>
+
+  <!-- Subtle underline accent -->
+  <rect x="166" y="418" width="180" height="3" rx="1.5" fill="#c4421a" opacity="0.6"/>
 </svg>
