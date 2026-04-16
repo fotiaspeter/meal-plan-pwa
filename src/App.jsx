@@ -592,6 +592,79 @@ if (typeof document !== "undefined" && !document.getElementById("meal-anim-style
   document.head.appendChild(s);
 }
 
+// ==========================================================================
+// HAPTIC FEEDBACK — iOS-compatible workaround
+// ==========================================================================
+// iOS Safari does NOT support navigator.vibrate() at all — it returns true
+// but does nothing. The workaround: iOS Safari fires a genuine native haptic
+// tap when you programmatically click a <label> connected to a hidden
+// <input type="checkbox" switch>. This works from iOS 17.4+.
+//
+// On Android / Chrome / Firefox we use the standard navigator.vibrate() API.
+// ==========================================================================
+
+let _hapticInput = null;
+let _hapticLabel = null;
+
+function setupHapticElements() {
+  if (typeof document === "undefined" || _hapticInput) return;
+  // Hidden container
+  const container = document.createElement("div");
+  container.setAttribute("aria-hidden", "true");
+  container.style.cssText = "position:absolute;width:0;height:0;overflow:hidden;pointer-events:none;opacity:0;";
+
+  // Switch-style checkbox — iOS treats this specially and emits native haptic
+  _hapticInput = document.createElement("input");
+  _hapticInput.type = "checkbox";
+  _hapticInput.setAttribute("switch", "");
+  _hapticInput.id = "haptic-switch-el";
+  _hapticInput.tabIndex = -1;
+
+  _hapticLabel = document.createElement("label");
+  _hapticLabel.setAttribute("for", "haptic-switch-el");
+
+  container.appendChild(_hapticInput);
+  container.appendChild(_hapticLabel);
+  document.body.appendChild(container);
+}
+
+function isIOS() {
+  if (typeof navigator === "undefined") return false;
+  return /iPad|iPhone|iPod/.test(navigator.userAgent) ||
+    (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1);
+}
+
+function triggerHaptic(strength = "medium") {
+  if (typeof window === "undefined") return;
+
+  // iOS: use the <label>+<input switch> trick for genuine native haptics
+  if (isIOS()) {
+    setupHapticElements();
+    if (_hapticLabel) {
+      try {
+        // Click it multiple times for stronger pulse patterns
+        const pulses = strength === "heavy" ? 3 : strength === "medium" ? 2 : 1;
+        for (let i = 0; i < pulses; i++) {
+          setTimeout(() => _hapticLabel.click(), i * 80);
+        }
+      } catch (e) { /* ignore */ }
+    }
+    return;
+  }
+
+  // Android / other: use standard vibration API
+  if (navigator.vibrate) {
+    try {
+      const patterns = {
+        light: 25,
+        medium: [40, 40, 40],
+        heavy: [40, 60, 80, 60, 40],
+      };
+      navigator.vibrate(patterns[strength] || 50);
+    } catch (e) { /* ignore */ }
+  }
+}
+
 function MealCard({ meal, checked, onToggle }) {
   const t = mealTheme[meal.type];
   const [bursting, setBursting] = useState(false);
@@ -603,18 +676,11 @@ function MealCard({ meal, checked, onToggle }) {
     if (!checked) {
       setBursting(true);
       setShowStreak(true);
-      // Haptic feedback — works on most iOS versions via navigator.vibrate
-      // Pattern: short buzz, pause, longer buzz, pause, short buzz (feels like a "tick!")
-      if (typeof window !== "undefined" && window.navigator && window.navigator.vibrate) {
-        try {
-          // Triple-tap pattern gives a satisfying "done!" haptic feel
-          window.navigator.vibrate([40, 60, 80, 60, 40]);
-        } catch (e) {
-          // Fail silently if vibration is blocked
-        }
-      }
+      triggerHaptic("heavy");
       setTimeout(() => setBursting(false), 1000);
       setTimeout(() => setShowStreak(false), 1600);
+    } else {
+      triggerHaptic("light");
     }
     onToggle();
   };
@@ -1145,6 +1211,13 @@ function WaterTab({ waterIntake, setWaterIntake }) {
       id: Date.now() + Math.random(),
     };
     setWaterIntake([...waterIntake, entry]);
+    // Light haptic tap for water logging
+    triggerHaptic("light");
+    // Celebrate extra hard when goal is crossed
+    const newTotal = waterIntake.reduce((s, e) => s + e.ml, 0) + ml;
+    if (newTotal >= WATER_GOAL && (newTotal - ml) < WATER_GOAL) {
+      setTimeout(() => triggerHaptic("heavy"), 200);
+    }
   };
 
   const addCustom = () => {
