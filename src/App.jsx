@@ -434,18 +434,6 @@ const groceryList = [
   }
 ];
 
-const quotes = [
-  { text: "You didn't lose 55kg by accident. That same discipline is building something new now.", author: "Your Coach" },
-  { text: "The pain you feel today will be the strength you feel tomorrow.", author: "Arnold Schwarzenegger" },
-  { text: "Success is not given. It is earned. With blood, sweat, and the occasional tear.", author: "Nike" },
-  { text: "The only bad workout is the one that didn't happen.", author: "Unknown" },
-  { text: "Your body can stand almost anything. It's your mind that you have to convince.", author: "Unknown" },
-  { text: "Discipline is choosing between what you want now and what you want most.", author: "Abraham Lincoln" },
-  { text: "The last three or four reps is what makes the muscle grow.", author: "Arnold Schwarzenegger" },
-  { text: "You are one workout away from a good mood.", author: "Unknown" },
-  { text: "Don't count the days. Make the days count.", author: "Muhammad Ali" },
-  { text: "The difference between who you are and who you want to be is what you do.", author: "Unknown" },
-];
 
 const commonFoods = {
   "Egg (1 large)": { calories: 72, protein: 6, fat: 5, carbs: 0.5, fibre: 0 },
@@ -1382,70 +1370,6 @@ function WaterTab({ waterIntake, setWaterIntake }) {
   );
 }
 
-// ========== TAB: MOTIVATION ==========
-function MotivationTab() {
-  const [idx, setIdx] = useState(0);
-  const [touchStart, setTouchStart] = useState(null);
-  const next = () => setIdx((idx + 1) % quotes.length);
-  const prev = () => setIdx((idx - 1 + quotes.length) % quotes.length);
-  const handleTouchStart = e => setTouchStart(e.touches[0].clientX);
-  const handleTouchEnd = e => {
-    if (touchStart === null) return;
-    const diff = touchStart - e.changedTouches[0].clientX;
-    if (Math.abs(diff) > 40) diff > 0 ? next() : prev();
-    setTouchStart(null);
-  };
-
-  return (
-    <>
-      <div style={{ marginBottom: 16 }}>
-        <h1 style={{ fontSize: 22, fontWeight: 800, margin: "0 0 2px", letterSpacing: -0.5 }}>Motivation</h1>
-        <p style={{ fontSize: 12, color: C.textDim, margin: 0 }}>Swipe through for a mental boost</p>
-      </div>
-
-      <div onTouchStart={handleTouchStart} onTouchEnd={handleTouchEnd} style={{
-        background: C.card, borderRadius: 14, padding: "32px 22px",
-        border: `1px solid ${C.border}`, textAlign: "center", userSelect: "none",
-        minHeight: 240, display: "flex", flexDirection: "column",
-        alignItems: "center", justifyContent: "center",
-      }}>
-        <div style={{ fontSize: 10, fontWeight: 800, color: C.accent, textTransform: "uppercase", letterSpacing: 2, marginBottom: 16 }}>
-          Quote #{idx + 1} of {quotes.length}
-        </div>
-        <p style={{ fontSize: 18, color: C.text, fontStyle: "italic", lineHeight: 1.5, margin: "0 0 14px", maxWidth: 500, fontWeight: 500 }}>
-          "{quotes[idx].text}"
-        </p>
-        <p style={{ fontSize: 12, color: C.textMuted, margin: 0 }}>— {quotes[idx].author}</p>
-        <div style={{ display: "flex", gap: 14, marginTop: 22, alignItems: "center" }}>
-          <button onClick={prev} style={{
-            background: C.cardAlt, border: `1px solid ${C.border}`, borderRadius: 10,
-            color: C.text, fontSize: 20, width: 40, height: 40, cursor: "pointer",
-          }}>‹</button>
-          <div style={{ display: "flex", gap: 5 }}>
-            {quotes.map((_, i) => (
-              <div key={i} style={{
-                width: i === idx ? 18 : 6, height: 6, borderRadius: 3,
-                background: i === idx ? C.accent : C.border, transition: "all 0.3s",
-              }}/>
-            ))}
-          </div>
-          <button onClick={next} style={{
-            background: C.cardAlt, border: `1px solid ${C.border}`, borderRadius: 10,
-            color: C.text, fontSize: 20, width: 40, height: 40, cursor: "pointer",
-          }}>›</button>
-        </div>
-      </div>
-
-      <div style={{
-        marginTop: 16, padding: "14px 16px", background: C.purpleSoft,
-        border: `1px solid ${C.purple}33`, borderRadius: 10,
-        fontSize: 12, color: C.purple, lineHeight: 1.6,
-      }}>
-        💜 <strong>Remember:</strong> You went from 165kg to 110kg. That's not luck, that's character. This phase is about building on top of that foundation, not starting from zero.
-      </div>
-    </>
-  );
-}
 
 // ========== LOCALSTORAGE HOOKS ==========
 // Persists any state to localStorage under a given key. Survives app reloads.
@@ -1502,7 +1426,6 @@ const tabs = [
   { id: "water", label: "Water", icon: "💧" },
   { id: "grocery", label: "Grocery", icon: "🛒" },
   { id: "custom", label: "Custom", icon: "➕" },
-  { id: "motivation", label: "Motivate", icon: "💪" },
 ];
 
 export default function App() {
@@ -1545,7 +1468,6 @@ export default function App() {
         {activeTab === "water" && <WaterTab waterIntake={waterIntake} setWaterIntake={setWaterIntake}/>}
         {activeTab === "grocery" && <GroceryTab/>}
         {activeTab === "custom" && <CustomFoodsTab customFoods={customFoods} setCustomFoods={setCustomFoods}/>}
-        {activeTab === "motivation" && <MotivationTab/>}
       </div>
 
       <nav style={{
