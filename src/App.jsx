@@ -570,6 +570,13 @@ const animationStyles = `
   50% { transform: scale(1.3) rotate(5deg); }
   100% { transform: scale(1) rotate(0deg); opacity: 1; }
 }
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+@keyframes ptrSlideDown {
+  from { opacity: 0; transform: translateY(-20px) scale(0.8); }
+  to   { opacity: 1; transform: translateY(0)    scale(1);   }
+}
 `;
 
 // Inject styles once
@@ -1420,6 +1427,50 @@ function useDailyPersistedState(key, defaultValue) {
   return [value, setValue];
 }
 
+// ========== PULL-TO-REFRESH ==========
+const PTR_THRESHOLD = 80; // px to pull before triggering
+
+function usePullToRefresh() {
+  const [pullY, setPullY] = useState(0);       // 0–PTR_THRESHOLD
+  const [refreshing, setRefreshing] = useState(false);
+  const startY = useRef(null);
+
+  useEffect(() => {
+    const onTouchStart = (e) => {
+      if (window.scrollY === 0) startY.current = e.touches[0].clientY;
+    };
+
+    const onTouchMove = (e) => {
+      if (startY.current === null) return;
+      const dy = e.touches[0].clientY - startY.current;
+      if (dy > 0) {
+        setPullY(Math.min(dy, PTR_THRESHOLD * 1.4));
+      }
+    };
+
+    const onTouchEnd = () => {
+      if (pullY >= PTR_THRESHOLD) {
+        setRefreshing(true);
+        triggerHaptic("medium");
+        setTimeout(() => window.location.reload(), 800);
+      }
+      setPullY(0);
+      startY.current = null;
+    };
+
+    document.addEventListener("touchstart", onTouchStart, { passive: true });
+    document.addEventListener("touchmove", onTouchMove, { passive: true });
+    document.addEventListener("touchend", onTouchEnd);
+    return () => {
+      document.removeEventListener("touchstart", onTouchStart);
+      document.removeEventListener("touchmove", onTouchMove);
+      document.removeEventListener("touchend", onTouchEnd);
+    };
+  }, [pullY]);
+
+  return { pullY, refreshing };
+}
+
 // ========== MAIN APP WITH BOTTOM NAV ==========
 const tabs = [
   { id: "meals", label: "Meals", icon: "🍽️" },
@@ -1429,6 +1480,7 @@ const tabs = [
 ];
 
 export default function App() {
+  const { pullY, refreshing } = usePullToRefresh();
   const [activeTab, setActiveTab] = usePersistedState("mp_activeTab", "meals");
   const [activeDay, setActiveDay] = useState(new Date().getDay() === 0 ? 6 : new Date().getDay() - 1);
   // Custom foods persist across sessions but reset daily (new day = clean slate)
@@ -1448,12 +1500,55 @@ export default function App() {
     }));
   };
 
+  const ptrProgress = Math.min(pullY / PTR_THRESHOLD, 1);
+  const showIndicator = pullY > 10 || refreshing;
+
   return (
     <div style={{
       fontFamily: "'SF Pro Display', 'Segoe UI', system-ui, -apple-system, sans-serif",
       background: C.bg, color: C.text, minHeight: "100vh",
       paddingBottom: 90,
     }}>
+      {/* Pull-to-refresh indicator */}
+      {showIndicator && (
+        <div style={{
+          position: "fixed", top: 0, left: 0, right: 0, zIndex: 200,
+          display: "flex", justifyContent: "center",
+          paddingTop: `${8 + ptrProgress * 20}px`,
+          pointerEvents: "none",
+        }}>
+          <div style={{
+            display: "flex", alignItems: "center", gap: 8,
+            background: C.card, border: `1px solid ${refreshing ? C.green : C.accentBorder}`,
+            borderRadius: 20, padding: "7px 14px",
+            opacity: refreshing ? 1 : ptrProgress,
+            transform: `scale(${0.85 + ptrProgress * 0.15})`,
+            transition: refreshing ? "border-color 0.2s" : "none",
+            boxShadow: "0 4px 20px rgba(0,0,0,0.4)",
+            animation: refreshing ? "ptrSlideDown 0.2s ease-out" : "none",
+          }}>
+            <svg
+              width="16" height="16" viewBox="0 0 16 16" fill="none"
+              style={{
+                animation: refreshing ? "spin 0.7s linear infinite" : "none",
+                transform: refreshing ? undefined : `rotate(${ptrProgress * 300}deg)`,
+                transition: refreshing ? "none" : "transform 0.05s",
+              }}
+            >
+              <circle cx="8" cy="8" r="6.5" stroke={refreshing ? C.green : C.accent} strokeWidth="1.5" strokeOpacity="0.3"/>
+              <path d="M8 1.5A6.5 6.5 0 0 1 14.5 8" stroke={refreshing ? C.green : C.accent} strokeWidth="1.8" strokeLinecap="round"/>
+            </svg>
+            <span style={{
+              fontSize: 11, fontWeight: 700,
+              color: refreshing ? C.green : C.accent,
+              letterSpacing: 0.3,
+            }}>
+              {refreshing ? "Refreshing…" : ptrProgress >= 1 ? "Release to refresh" : "Pull to refresh"}
+            </span>
+          </div>
+        </div>
+      )}
+
       <div style={{ maxWidth: 640, margin: "0 auto", padding: "20px 14px" }}>
         {activeTab === "meals" && (
           <MealPlanTab
